@@ -14,7 +14,8 @@ public class PlayerBall : MonoBehaviour
         }
         else if (other.gameObject.CompareTag(Const.TAG_FRIENDLY))
         {
-            GameManager.Instance.IncreaseScore(Const.BALL_SCORE);
+            int ballScore = Application.isEditor ? Const.BALL_SCORE : HMSRemoteConfigManager.Instance.GetValueAsInt("BALL_SCORE");
+            GameManager.Instance.IncreaseScore(ballScore);
             Destroy(other.gameObject);
         }
     }

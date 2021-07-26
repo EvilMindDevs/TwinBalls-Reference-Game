@@ -1,3 +1,5 @@
+using HuaweiMobileServices.RemoteConfig;
+using HuaweiMobileServices.Utils;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -44,6 +46,11 @@ public class GameManager : MonoBehaviour
         {
             MainMenu.Show();
             gameAlreadyStarted = true;
+#if !UNITY_EDITOR
+            HMSRemoteConfigManager.Instance.OnFecthSuccess = OnFecthSuccess;
+            HMSRemoteConfigManager.Instance.OnFecthFailure = OnFecthFailure;
+            HMSRemoteConfigManager.Instance.Fetch(0);
+#endif
         }
         else
         {
@@ -60,20 +67,42 @@ public class GameManager : MonoBehaviour
 
     IEnumerator SpawnWaves()
     {
-        yield return new WaitForSeconds(Const.SPAWN_START_WAIT);
-
-        while (!IsGameOver)
+        if (Application.isEditor)
         {
-            if (random.NextDouble() < Const.ENEMY_SPAWN_CHANCE)
-            {
-                Instantiate(enemyPrefab, Vector3.zero, Quaternion.identity);
-            }
-            else
-            {
-                Instantiate(friendPrefab, Vector3.zero, Quaternion.identity);
-            }
+            yield return new WaitForSeconds(Const.SPAWN_START_WAIT);
 
-            yield return new WaitForSeconds(Random.Range(Const.SPAWN_WAIT_MIN, Const.SPAWN_WAIT_MAX));
+            while (!IsGameOver)
+            {
+                if (random.NextDouble() < Const.ENEMY_SPAWN_CHANCE)
+                {
+                    Instantiate(enemyPrefab, Vector3.zero, Quaternion.identity);
+                }
+                else
+                {
+                    Instantiate(friendPrefab, Vector3.zero, Quaternion.identity);
+                }
+
+                yield return new WaitForSeconds(Random.Range(Const.SPAWN_WAIT_MIN, Const.SPAWN_WAIT_MAX));
+            }
+        }
+
+        else
+        {
+            yield return new WaitForSeconds(HMSRemoteConfigManager.Instance.GetValueAsFloat("SPAWN_START_WAIT"));
+
+            while (!IsGameOver)
+            {
+                if (random.NextDouble() < HMSRemoteConfigManager.Instance.GetValueAsFloat("ENEMY_SPAWN_CHANCE"))
+                {
+                    Instantiate(enemyPrefab, Vector3.zero, Quaternion.identity);
+                }
+                else
+                {
+                    Instantiate(friendPrefab, Vector3.zero, Quaternion.identity);
+                }
+
+                yield return new WaitForSeconds(Random.Range(HMSRemoteConfigManager.Instance.GetValueAsFloat("SPAWN_WAIT_MIN"), HMSRemoteConfigManager.Instance.GetValueAsFloat("SPAWN_WAIT_MAX")));
+            }
         }
     }
 
@@ -87,5 +116,15 @@ public class GameManager : MonoBehaviour
     {
         IsGameOver = true;
         GameOverMenu.Show();
+    }
+
+    private void OnFecthSuccess(ConfigValues config)
+    {
+        Debug.Log($"[GameManager]: fetch() Success");
+    }
+
+    private void OnFecthFailure(HMSException exception)
+    {
+        Debug.Log($"[GameManager]: fetch() Failed Error Code => {exception.ErrorCode} Message => {exception.WrappedExceptionMessage}");
     }
 }

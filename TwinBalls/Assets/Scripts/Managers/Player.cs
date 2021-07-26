@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class Player : MonoBehaviour
 {
-    private float angle = 1.02f;
+    private float angle = 300f;
 
     private float defaultBallDistance = 1.8f;
 
@@ -15,7 +15,9 @@ public class Player : MonoBehaviour
             if (!GameManager.Instance.IsGameStarted) return;
             angle *= -1;
         }
-
-        transform.Rotate(0, 0, angle * Const.TURNING_SPEED);
+        if (Application.isEditor)
+            transform.Rotate(0, 0, angle * Const.TURNING_SPEED * Time.deltaTime);
+        else
+            transform.Rotate(0, 0, angle * HMSRemoteConfigManager.Instance.GetValueAsFloat("TURNING_SPEED") * Time.deltaTime);
     }
 }

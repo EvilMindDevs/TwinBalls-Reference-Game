@@ -40,6 +40,7 @@ public class HMSAnalyticsManager : HMSSingleton<HMSAnalyticsManager>
 
     void Start()
     {
+        if (Application.isEditor) return;
         InitilizeAnalyticsInstane();
     }
 }

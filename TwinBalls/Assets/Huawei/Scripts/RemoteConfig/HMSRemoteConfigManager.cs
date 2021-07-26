@@ -20,6 +20,7 @@ public class HMSRemoteConfigManager : HMSSingleton<HMSRemoteConfigManager>
 
     public override void Awake()
     {
+        if (Application.isEditor) return;
         base.Awake();
         GetInstance();
         if (HMSRemoteConfigSettings.Instance != null)
@@ -72,6 +73,7 @@ public class HMSRemoteConfigManager : HMSSingleton<HMSRemoteConfigManager>
         ITask<ConfigValues> x = agc.Fetch();
         x.AddOnSuccessListener((configValues) =>
         {
+            agc.Apply(configValues);
             Debug.Log("[HMSRemoteConfigManager] Fetch success.");
             OnFecthSuccess?.Invoke(configValues);
         });
@@ -89,6 +91,7 @@ public class HMSRemoteConfigManager : HMSSingleton<HMSRemoteConfigManager>
         ITask<ConfigValues> x = agc.Fetch(intervalSeconds);
         x.AddOnSuccessListener((configValues) =>
         {
+            agc.Apply(configValues);
             OnFecthSuccess?.Invoke(configValues);
         });
         x.AddOnFailureListener((exception) =>
@@ -137,7 +140,7 @@ public class HMSRemoteConfigManager : HMSSingleton<HMSRemoteConfigManager>
     //setDeveloperMode(boolean isDeveloperMode) Enables the developer mode, in which the number 
     //of times that the client obtains data from Remote Configuration is not limited, and traffic 
     //control is still performed over the cloud.
-    public void SetDeveloperMode(Boolean val)
+    public void SetDeveloperMode(bool val)
     {
         if (agc != null) agc.DeveloperMode = val;
         Debug.Log($"[{TAG}]: setDeveloperMode({val})");
@@ -149,5 +152,7 @@ public class HMSRemoteConfigManager : HMSSingleton<HMSRemoteConfigManager>
     public double GetValueAsDouble(string paramString) => agc.GetValueAsDouble(paramString);
     public long GetValueAsLong(string paramString) => agc.GetValueAsLong(paramString);
     public string GetValueAsString(string paramString) => agc.GetValueAsString(paramString);
+    public float GetValueAsFloat(string paramString) => (float)agc.GetValueAsDouble(paramString);
+    public int GetValueAsInt(string paramString) => int.Parse(agc.GetValueAsString(paramString));
 
 }
